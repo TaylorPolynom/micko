@@ -1,0 +1,179 @@
+%balisticko konstrukcioni podaci o orudju
+clear all,close all,clc 
+d=85*10^-3;
+pm=3200;
+tm=5.7;
+Vm=454;
+Im=0.82;
+tu=10.9;
+pu=1020*10^5;
+V0=1040;
+Iu=4.95;
+W0=8.04*(10^-3);
+mp=9.3;
+mb=5.75;
+M0=1260;
+Mb=2400;
+Fimin=0;
+Fimax=35;
+hgr=0.85;
+D0=3.25;
+L=3.60;
+ksi=0.65;
+%rad
+As=0.81*d^2
+beta=(1.48*sqrt(1.25*pu*(W0+As*Iu)/mb))/V0
+%parametar isticanja
+b=((beta-0.5)*mb*V0)/(As*pu)
+%isticanje barutnih gasova bez barutne kocnice(GK)
+        %   p=pu*exp(-t/b) [bar]
+
+%   2)-Izbor i proracun gasne kocnice
+betagk=(((sqrt(1-ksi))*(mp+(beta*mb)))-(mp))/(mb)
+HI=(betagk-0.5)/(beta-0.5)
+alfa=betagk/beta
+teta=20
+teta1=teta*2*pi/360
+ksi=sqrt((alfa+(sin(teta1)))/(1+(sin(teta1))))
+format shortEng
+S01=1.25*As
+S02=1.35*As
+A=sin(teta1);
+format long
+zeta=0.467*((1-(A^2)/(8))^4.5)
+format shortEng
+Sb1=((S01)/(2*zeta))*((1/ksi)-1)
+Sb2=((S02)/(2*zeta))*((1/ksi)-1)
+format long
+I=(2*0.0015)/(2*A)
+Dp1=sqrt((4/pi)*(S01+zeta*Sb1))
+hb=0.6*Dp1
+Ln1=Sb1/hb
+Ln2=Sb2/hb
+format shortEng
+C1=Ln1*tan(teta1)
+C2=Ln2*tan(teta1)
+C1C2=sprintf('%.3f   ',C1,C2)
+Rgk_max=(1-HI)*As*pu
+RGKmax=sprintf('%.0f[N]',Rgk_max)
+sigmaVe=80*10^7
+A1=(1.25*Rgk_max*1.5)/(sigmaVe)
+A=sprintf('%.4f [m^2]',A1)
+% 3.  Proracun elemenata trzanja cevi
+%I period :
+format long
+Wm1a=((mp+0.5*mb)/(M0+mp+mb))*Vm;
+Wm1=sprintf('%.3f [m/s]',Wm1a)
+Lm1a=((mp+0.5*mb)/(M0+mp+mb))*Im;
+Lm1=sprintf('%.4f [m]',Lm1a)
+Wu=(mp+0.5*mb)*V0/(M0+mp+mb);
+Wu1=sprintf('%.3f [m/s]',Wu)
+Lu=(mp+0.5*mb)*Iu/(M0+mp+mb);
+Lu1=sprintf('%.3f [m]',Lu)
+%II period :
+tist=b*log((pu/10^5)/2);
+tist1=sprintf('%.4f [s]',tist);
+t=linspace(0,tist,4);
+tn1=tu*10^-3+t;
+t2=sprintf(' Vreme t:   %1.4f.\n',t);
+disp(t2)
+tn2=sprintf(' Vreme tu+t:   %1.4f.\n',tn1);
+disp(tn2)
+W=Wu+HI*(b/M0)*(As*pu)*(1-exp(-t/b));
+b1=-2;
+W1a= floor(W*10^(-b1))/(10^(-b1));
+W2=sprintf(' Brzina  W:   %1.4f.\n',W1a);
+disp(W2)
+L=Lu+(Wu*t)+HI*(b/M0)*(As*pu)*(t-b*(1-exp(-t/b)));
+L1a= floor(L*10^(-b1))/(10^(-b1));
+L2=sprintf(' Duzina  L:   %1.4f.\n',L1a);
+disp(L2)
+% 4)Proracun uzduzne stabilnosti pri trzanju 
+nt=0.9;g=9.81;
+Rmax1=nt*((Mb*g*D0)-(M0*g*L(4))*cos(Fimin))/hgr;
+Rmax=sprintf('%.0f [N]',Rmax1)
+% 5)Proracun elementa kocionog  kretanja u periodu trzanja
+f=0.18;ni=0.3;
+Fimax1=(Fimax*2*pi)/360;
+PI01=(M0*g)*(sin(Fimax1)+(f*cos(Fimax1))+(ni));
+PI0=sprintf('%.f [N]',PI01)
+Fimin1=(Fimin*2*pi)/360;
+Rf1=M0*g*(f*cos(Fimin1)+ni);
+Rf=sprintf('%.f [N]',Rf1)
+Ro1=(PI01+Rf1)-(M0*g*sin(Fimin1));
+Ro=sprintf('%.f [N]',Ro1)
+% 1period: 
+format shortG
+A1=(Rmax1+Ro1)/2
+B1=(Rmax1-Ro1)/2
+format shortG
+k=pi/(tu*10^-3)
+Vm1a=Wm1a-1/M0*(A1*tm*10^-3-B1/k*sin(k*tm*10^-3));
+Vm1=sprintf('%.3f [m/s]',Vm1a)
+Xm=Lm1a-1/M0*(A1*(tm*10^-3)^2-B1/k^2*(1-cos(k*tm*10^-3)));
+Xm1=sprintf('%.3f [m]',Xm)
+Rm1=Ro1+(Rmax1-Ro1)*(sin(pi/2*tm/tu))^2;
+Rm=sprintf('%.f [N]',Rm1)
+Vu1=Wu-1/M0*(A1*tu*10^-3-B1/k*sin(pi));
+Vu=sprintf('%.3f [m/s]',Vu1)
+Xu1=Lu-1/M0*(A1*(tu*10^-3)^2-B1/k^2*(1-cos(pi)));
+Xu=sprintf('%.3f [m]',Xu1)
+%2period:
+Vtau2=W1a(4)-(Wu-Vu1)-((Rmax1*tist)/M0); Xtau2=L1a(4)-(Lu-Xu1)-(Wu-Vu1)*tist-Rmax1*tist^2/(2*M0);
+Vtau=sprintf('%.3f [m/s]',Vtau2)
+Xtau=sprintf('%.3f [m]',Xtau2)
+%3 period
+A3=M0*g*cos(Fimin)
+B3=2*Mb*g*D0
+C3=(hgr/nt)*(M0*Vtau2^2)-A3*(Xtau2^2)+(B3*Xtau2)
+LAMBDA3a=(B3-sqrt(B3^2-4*A3*C3))/(2*A3);
+LAMBDA3aa=sprintf('%.3f [m]',LAMBDA3a)
+LAMBDA3=roundn(LAMBDA3a+0.05,-1)
+R3lambdaa=nt*g*(Mb*D0-M0*LAMBDA3a*cos(Fimin))/hgr;
+R3lambda=sprintf('%.f [N]',R3lambdaa)
+%Vreme trajanje 3 perioda:
+t3a=sqrt(M0*(LAMBDA3-Xtau2)/(Rmax1-R3lambdaa))*log(R3lambdaa/(Rmax1-sqrt(Rmax1^2-R3lambdaa^2)));
+t3=sprintf('%.3f [s]',t3a)
+X=[0 Xm linspace(Xu1,Xtau2,4) roundn(Xtau2+0.1,-1) :0.025 :LAMBDA3]
+R1a=R3lambdaa+(Rmax1-R3lambdaa)/(LAMBDA3-Xtau2)*(LAMBDA3-X(7:11));
+R=[Ro1 Rm1 linspace(Rmax1,Rmax1,4) R1a ]
+V1=sqrt(1/M0.*(R(7:11)+R3lambdaa).*(LAMBDA3-X(7:11)));
+V=[0 Vm1a linspace(Vu1,Vtau2,4)  V1]
+tn2=sqrt(M0.*(X(7:11)-Xtau2)/(Rmax1-R(7:11))).*log(R(7:11)./(Rmax1-sqrt(Rmax1.^2-R(7:11).^2)));
+tn3=[0 tm*10^-3 tu*10^-3 t(2:4) tn2]
+T=[0 tm*10^-3 tn1 tn1(4)+tn2]
+ttrza=T(11);
+ttrz=sprintf('Vreme trzanja ttrz=  %.4f[s]',ttrza)
+% 8)Proracun elemenata kretanja cevi u periodu vracanja
+PIlambdamax=R3lambdaa-M0*g*(f*cos(Fimin)+ni)
+mmax=PIlambdamax/PI01
+m=roundn(mmax-0.5,0)
+PIlambda=m*PI01
+n=1.15
+LAMBDA3
+So=LAMBDA3/(1-1/(m)^(1/n))
+So1=sprintf('%.3f [m]',So)
+%elementi vracanja  u I periodu
+PIlambdaprim=PIlambda-M0*g*f*cosd(Fimin)+sind(Fimin)+ni
+PI1lamdaprima=sprintf('%.0f [N]',PIlambdaprim)
+Umax=1.8
+KSI1=(M0*Umax^2)/PIlambdaprim
+OMEGA1=M0*Umax^2/2
+t1=(pi/2)*(KSI1)/Umax
+X1=LAMBDA3-KSI1
+PI01
+Rf
+PI1primar=PI01*(So/(So-X1))^n-Rf1
+KSI2=LAMBDA3/4
+KSIv=KSI2
+DELTAksi2=KSIv-KSI1
+DELTAt2=DELTAksi2/Umax
+Xv=LAMBDA3-KSIv
+OMEGA3=0.5*OMEGA1
+nv=0.8
+Li=3.60;%Li je u stvari L duzina  cevi koja je zadata zadatkom na pocetku moje Li=L=3.60
+rv=nv*(Mb*g*(Li-D0)+M0*g*(LAMBDA3-KSIv)*cosd(Fimin))/hgr
+KSI3=KSIv+2*OMEGA3/rv
+r3=0
+U3=sqrt(Umax^2-(rv+r3)/M0*(KSI3-KSIv))
+X3=LAMBDA3-KSI3
